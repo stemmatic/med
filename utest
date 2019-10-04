@@ -1,0 +1,202 @@
+Test 1: Copy through (plain)
+
+< 00 A | 01 B | 10 C >
+/x	< 00 a
+	| 01 b
+	| 10 c
+	>
+
+Test 2: Remove Braces:
+
+  foo  
+{ foo }
+
+Test 3: Don't remove braces from comments
+
+" Comment here "
+{removed brace}
+" {commented out removed brace} "
+
+Test 4: Normalize variant list
+
+	< 0 a | 1 b | 0 c >
+{	< 0 a | 1 b | 0 c >}
+{"	< 0 a | 1 b | 0 c >"}
+
+{	< 0 $a >}
+
+Test 5: Backslash feature: eat newlines, but other deactivate meaning
+
+Non-active area with \< and \}, ending with \
+
+{Active area with ending with \
+you see}
+
+{"But not in \
+comment!"}
+
+{don't do this example \< 0 a | 1 b | 0 c >}
+
+{don't \} quit too soon < 0 a | 1 b | 0 c >}
+
+{Active area with an embedded new\nline}
+
+Test 6: Reserve active commands with "{}"
+
+"{{}	< 0 a | 1 b >}"
+{{}	< 0 a | 1 b >}
+
+Test 7: Add a new entry "{+< 2 Z >}"
+{{+< 2 Z >}	< 0 a >}
+{{+< 2 Z >}	< 0 a | 1 b >}
+{{+< 2 Z >}	< 0 a | 1 b | 2 c >}
+
+Test 8: Add multiple entries (for hands)
+{{/Z 0 1 2}\
+/a	< 0 a | 1 b | 2 c >
+/b	< 0 a | 1 b | 2 c >
+/c	< 0 a | 1 b | 2 c >}
+
+Test 9: Skip entries for $
+{{/Z 0 $ 2}\
+/a	< 0 a | 1 b | 2 c >
+/b	< 0 a | 1 b | 2 c >
+/c	< 0 a | 1 b | 2 c >}
+
+Test 10: Replace entries
+{{/a 0 1 2}\
+/a	< 0 a | 1 b | 2 c >
+/b	< 0 a | 1 b | 2 c >
+/c	< 0 a | 1 b | 2 c >}
+
+{{+< 1 a >}	< 0 a | 1 b >}
+{{+< 1 a >}	< 0 a >}
+{{+< 1 a >}	< 0 a | 2 a >}
+{{+< 0 a >}	< 0 a b | 2 a >}
+
+{{/a $ $ $}\
+/a	< 0 a | 1 b | 2 c >
+/b	< 1 a | 0 b | 2 c >
+/c	< 2 a | 1 b | 0 c >}
+
+Test 11: Check variation units for right number
+{[ lemma here 
+| var1a var1b var1c | var2 ]
+/a	< 00 a | 10 b | 20 c >
+/b	< 0  a | 1  b | 2  c >
+/c	< 000 a | 100 b | 200 c >
+/d	< 0 a | 10 b | 200 c >}
+
+But not if not lemma is included:
+{	< 0 a | 10 b | 200 c >}
+
+Test 12: Check vunits for right values
+{[ lemma
+| a | a b | c ]
+	< 000 a | 111 b | 222 c | ??? d | 333 e >}
+
+Test 13: Drop column
+{[ lemma
+| v1 v2 | v1 | v1 v2 v3 ]
+	< 000 A | 010 B | 100 C >}
+{[ lemma
+{_}| v1 v2 | v1 | v1 v2 v3 ]
+	< 000 A | 010 B | 100 C >}
+{[ lemma
+{_}| v1 v2 {_}| v1 | v1 v2 v3 ]
+	< 000 A | 010 B | 100 C >}
+{[ lemma
+{_}| v1 v2 | v1 {_}| v1 v2 v3 ]
+	< 000 A | 010 B | 100 C >}
+{[ lemma
+| v1 v2 {_}| v1 | v1 v2 v3 ]
+	< 000 A | 010 B | 100 C >}
+
+Test 14: Insert column:
+{[ lemma
+| v1 v2 | v1 | v1 v2 v3 ]
+	< 000 A | 010 B | 100 C >}
+{[ lemma
+{+}| v1 | v1 v2 | v1 | v1 v2 v3 ]
+	< 000 A | 010 B | 100 C >}
+{[ lemma
+| v1 v2 {+}| v1 | v1 | v1 v2 v3 ]
+	< 000 A | 010 B | 100 C >}
+{[ lemma
+| v1 v2 | v1 | v1 v2 v3 {+}| v1 v2 v3 v4 ]
+	< 000 A | 010 B | 100 C >}
+{[ lemma
+{+}| a | v1 v2 | v1 | v1 v2 v3 {+}| b ]
+	< 000 A | 010 B | 100 C >}
+
+Test 15: Apply mask
+{{!}{+< ... A >}\
+	< 000 A | 010 B | 100 C >}
+{{+< ..1 A >}\
+	< 000 A | 010 B | 100 C >}
+{{+< .1. A B >}\
+	< 000 A | 010 B | 100 C >}
+{{+< ..1 A B >}\
+	< 000 A | 010 B | 100 C >}
+{{+< ..1 A Z >}\
+	< 000 A | 010 B | 100 C >}
+
+Test 16: Keep braces:
+{{} xxx }
+
+Bug: don't replace prefix matching
+
+{{+< 0 c >}	< 1 aa b | 2 a >}
+{{+< 0 a >}	< 1 aa b | 2 a >}
+
+Test 17: use * in mask for the first match
+
+{{+< *** B >}\
+	< 000 A | 010 B | 100 C >}
+{{+< *** B | *** x >}\
+	< 000 A | 010 B | 100 C >}
+{{+< *** B | 1** y >}\
+	< 000 A | 010 B | 100 C >}
+{{+< *** B | .*. A >}\
+	< 000 A | 010 B | 100 C >}
+
+{{+< 010 B >}\
+	< 000 A | 100 C >}
+{{+< 010 B | *** x >}\
+	< 000 A | 100 C >}
+{{+< 010 B | 1** y >}\
+	< 000 A | 100 C >}
+{{+< 010 B | .*. A >}\
+	< 000 A | 100 C >}
+
+Test 18: Swap columns
+{[ lemma
+| v1 v2 | v1 | v1 v2 v3 ]
+	< 000 A | 010 B | 100 C >}
+{[ lemma
+{~}| v1 v2 | v1 | v1 v2 v3 ]
+	< 000 A | 010 B | 100 C >}
+{[ lemma
+{~}| v1 v2 {_}| v1 | v1 v2 v3 ]
+	< 000 A | 010 B | 100 C >}
+{[ lemma
+{~}| v1 v2 {+}| v1 | v1 v2 v3 ]
+	< 00 A | 01 B | 10 C >}
+
+{{!}[ lemma    " Test interaction with number of variants "
+{~}| v1 v2 | v1 | v1 v2 v3 ]
+	< 211 A | 212 B | 003 C >}
+
+Test 19: More generalized pattern matchin
+{[ lemma
+| v1 v2 | v1 | v1 v2 v3 ]{% 0.. 1..}
+	< 000 A | 010 B | 100 C >}
+
+{{}[ lemma      " Keep the pattern around for more fun "
+| v1 v2 | v1 | v1 v2 v3 ]{% 0.. 1..}
+	< 000 A | 010 B | 100 C >}
+
+{{% 0.. 1..}[ lemma    " Permit it to be used before the lemma "
+| v1 v2 | v1 | v1 v2 v3 ]
+	< 000 A | 010 B | 100 C >}
+
